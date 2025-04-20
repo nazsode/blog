@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -43,7 +42,10 @@ func main() {
 	db.AutoMigrate(&Post{})
 
 	// Fiber app
-	app := fiber.New()
+	//app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 10 * 1024 * 1024,
+	  })
 
 	// CORS middleware
 	app.Use(cors.New(cors.Config{
@@ -64,6 +66,7 @@ func main() {
 	// Start server
 	log.Println("Server started on port 8080")
 	log.Fatal(app.Listen(":8080"))
+
 }
 
 // Handlers
@@ -81,29 +84,31 @@ func GetPost(c *fiber.Ctx) error {
 }
 
 func CreatePost(c *fiber.Ctx) error {
-    // Parse form data (title, content, and image)
     title := c.FormValue("title")
     content := c.FormValue("content")
-    file, err := c.FormFile("image")
-
-    if err != nil && err != http.ErrMissingFile {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Error retrieving the file"})
+    
+    if title == "" || content == "" {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "error": "Title and content are required",
+        })
     }
 
     var imagePath string
-    if file != nil {
-        // Generate unique filename
+    file, err := c.FormFile("image")
+    
+    // Dosya varsa işle, yoksa devam et
+    if err == nil {
         ext := filepath.Ext(file.Filename)
         newFileName := uuid.New().String() + ext
         imagePath = "/uploads/" + newFileName
 
-        // Save the file
         if err := c.SaveFile(file, "./uploads/"+newFileName); err != nil {
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error saving the file"})
+            log.Println("File save error:", err)
+            // Hata olsa bile post oluşturmaya devam et
+            imagePath = ""
         }
     }
 
-    // Create the post
     post := Post{
         Title:     title,
         Content:   content,
@@ -111,7 +116,12 @@ func CreatePost(c *fiber.Ctx) error {
         CreatedAt: time.Now(),
     }
 
-    db.Create(&post)
+    if err := db.Create(&post).Error; err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "error": "Could not create post",
+        })
+    }
+
     return c.Status(fiber.StatusCreated).JSON(post)
 }
 
@@ -119,24 +129,41 @@ func UpdatePost(c *fiber.Ctx) error {
     id := c.Params("id")
     var existingPost Post
 
-    // Find the existing post
     if err := db.First(&existingPost, id).Error; err != nil {
-        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Post not found"})
+        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+            "error": "Post not found",
+        })
     }
 
-    // Parse the updated data
-    var updatedPost Post
-    if err := c.BodyParser(&updatedPost); err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+    title := c.FormValue("title")
+    content := c.FormValue("content")
+    file, err := c.FormFile("image")
+
+    // Mevcut resmi koru, yeni resim yüklenmediyse
+    imagePath := existingPost.Image
+    
+    // Yeni resim yüklendiyse
+    if err == nil {
+        ext := filepath.Ext(file.Filename)
+        newFileName := uuid.New().String() + ext
+        imagePath = "/uploads/" + newFileName
+
+        if err := c.SaveFile(file, "./uploads/"+newFileName); err != nil {
+            log.Println("File save error:", err)
+            // Hata olsa bile güncellemeye devam et
+        }
     }
 
-    // Update only the necessary fields (don't modify ID)
-    existingPost.Title = updatedPost.Title
-    existingPost.Content = updatedPost.Content
-    existingPost.Image = updatedPost.Image
+    existingPost.Title = title
+    existingPost.Content = content
+    existingPost.Image = imagePath
 
-    // Save changes (won't change ID)
-    db.Save(&existingPost)
+    if err := db.Save(&existingPost).Error; err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "error": "Could not update post",
+        })
+    }
+
     return c.JSON(existingPost)
 }
 

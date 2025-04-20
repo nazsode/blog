@@ -1,31 +1,98 @@
-.App {
-  text-align: center;
+/* App.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* Base Styles */
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+/* Navigation */
+nav {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+}
+
+nav a {
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+}
+
+nav a:hover {
+  background-color: #f1f5f9;
+}
+
+/* Form Elements */
+input,
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Utility Classes */
+.text-error {
+  color: #ef4444;
+}
+
+.loading-spinner {
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+/* Animations (Eski animasyonları koruyoruz) */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes App-logo-spin {
@@ -35,4 +102,42 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  nav {
+    padding: 0.5rem 0;
+  }
+
+  nav a {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Eski stilleri koruyoruz ama güncelliyoruz */
+.App {
+  text-align: left; /* 'center' yerine 'left' yaptık */
+}
+
+.App-header {
+  background-color: white; /* Koyu tema yerine açık tema */
+  min-height: auto; /* 100vh yerine auto */
+  padding: 2rem 0;
+  color: #1e293b; /* Yazı rengini siyaha yakın */
+  align-items: flex-start; /* Merkez yerine sola hizalı */
+}
+
+.App-link {
+  color: #3b82f6; /* Mavi tonu güncellendi */
+  text-decoration: none;
+}
+
+.App-link:hover {
+  text-decoration: underline;
 }

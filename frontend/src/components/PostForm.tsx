@@ -52,28 +52,32 @@ const PostForm: React.FC<PostFormProps> = ({ refreshPosts }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (imageFile && imageFile.size > 5 * 1024 * 1024) {
+      alert("Image file size should be less than 5MB");
+      return;
+    }
+
+    // EK ÇÖZÜM 2: Dosya tipi kontrolü (sadece resim)
+    if (imageFile && !imageFile.type.startsWith("image/")) {
+      alert("Please upload an image file");
+      return;
+    }
+
+    // Basit validasyon
+    if (!post.title.trim() || !post.content.trim()) {
+      alert("Please fill in both title and content fields");
+      return;
+    }
+
     try {
-      let imagePath = post.image;
+      const formData = new FormData();
+      formData.append("title", post.title);
+      formData.append("content", post.content);
 
-      // Upload new image if selected
+      // Sadece imageFile varsa ekle
       if (imageFile) {
-        const formData = new FormData();
         formData.append("image", imageFile);
-
-        const uploadResponse = await fetch("http://localhost:8080/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        const uploadData = await uploadResponse.json();
-        imagePath = uploadData.imagePath;
       }
-
-      const postData = {
-        title: post.title,
-        content: post.content,
-        image: imagePath,
-      };
 
       const url = id
         ? `http://localhost:8080/posts/${id}`
@@ -82,18 +86,30 @@ const PostForm: React.FC<PostFormProps> = ({ refreshPosts }) => {
 
       const response = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(postData),
+        body: formData,
       });
 
-      if (response.ok) {
-        refreshPosts();
-        navigate("/");
+      if (!response.ok) {
+        const errorData = (await response.json()) as { error?: string };
+        throw new Error(errorData?.error || "Failed to save post");
       }
+
+      refreshPosts();
+      navigate("/");
     } catch (error) {
-      console.error("Error saving post:", error);
+      let errorMessage = "An error occurred while saving the post";
+
+      if (error instanceof Error) {
+        // Dosya yükleme hatasını özel olarak ele al
+        if (error.message.includes("Error retrieving the file")) {
+          errorMessage = "Post saved without image (image upload failed)";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      console.error("Error saving post:", errorMessage);
+      alert(errorMessage);
     }
   };
 
@@ -145,7 +161,7 @@ const PostForm: React.FC<PostFormProps> = ({ refreshPosts }) => {
         </div>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="px-4 py-2 bg-white text-black border border-3 border-black rounded hover:bg-black hover:text-white"
         >
           {id ? "Update Post" : "Create Post"}
         </button>

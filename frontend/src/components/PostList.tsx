@@ -21,10 +21,13 @@ const PostList: React.FC<PostListProps> = ({ posts, refreshPosts }) => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Blog Posts</h1>
-      <div className="grid gap-6">
+      <h1 className="text-2xl font-bold mb-6 text-center">Blog Posts</h1>
+      <div className="grid max-w-3xl mx-auto">
         {posts.map((post) => (
-          <div key={post.id} className="border p-4 rounded shadow">
+          <div
+            key={post.id}
+            className="my-4 border border-black border-2 p-6 m-8 rounded-xl shadow-[0_4px_0px_-1px_rgba(0,0,0,1)]"
+          >
             {post.image && (
               <img
                 src={`http://localhost:8080${post.image}`}
@@ -33,7 +36,7 @@ const PostList: React.FC<PostListProps> = ({ posts, refreshPosts }) => {
               />
             )}
             <h2 className="text-xl font-semibold mb-2">
-              <Link to={`/posts/${post.id}`} className="hover:text-blue-600">
+              <Link to={`/posts/${post.id}`} className="hover:underline">
                 {post.title}
               </Link>
             </h2>
@@ -43,13 +46,13 @@ const PostList: React.FC<PostListProps> = ({ posts, refreshPosts }) => {
             <div className="flex space-x-2">
               <Link
                 to={`/edit/${post.id}`}
-                className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                className="px-3 py-1 bg-white text-black rounded border border-2 border-black hover:bg-black hover:text-white"
               >
                 Edit
               </Link>
               <button
                 onClick={() => handleDelete(post.id)}
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-3 py-1 bg-white text-black rounded border border-2 border-black hover:bg-black hover:text-white"
               >
                 Delete
               </button>
